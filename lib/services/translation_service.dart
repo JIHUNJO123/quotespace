@@ -57,29 +57,60 @@ class TranslationService {
   // 무료 번역 API (LibreTranslate 또는 MyMemory)
   Future<String?> _translateWithFreeAPI(String text, String targetLang) async {
     try {
-      // 텍스트가 500자 초과하면 잘라서 번역
-      String textToTranslate = text;
-      bool isTruncated = false;
-      if (text.length > 450) {
-        // 문장 단위로 자르기 시도
-        final sentences = text.split(RegExp(r'(?<=[.!?])\s+'));
-        textToTranslate = '';
-        for (final sentence in sentences) {
-          if ((textToTranslate + sentence).length < 450) {
-            textToTranslate += (textToTranslate.isEmpty ? '' : ' ') + sentence;
-          } else {
-            break;
-          }
-        }
-        if (textToTranslate.isEmpty) {
-          textToTranslate = text.substring(0, 450);
-        }
-        isTruncated = true;
+      // 텍스트가 450자 이하면 바로 번역
+      if (text.length <= 450) {
+        return await _callMyMemoryAPI(text, targetLang);
       }
-
-      // MyMemory API (무료, 일일 제한 있음)
+      
+      // 450자 초과하면 문장 단위로 나눠서 각각 번역 후 합치기
+      final sentences = text.split(RegExp(r'(?<=[.!?])\s+'));
+      List<String> chunks = [];
+      String currentChunk = '';
+      
+      // 문장들을 450자 이하 청크로 묶기
+      for (final sentence in sentences) {
+        if (currentChunk.isEmpty) {
+          currentChunk = sentence;
+        } else if ((currentChunk + ' ' + sentence).length <= 450) {
+          currentChunk += ' ' + sentence;
+        } else {
+          chunks.add(currentChunk);
+          currentChunk = sentence;
+        }
+      }
+      if (currentChunk.isNotEmpty) {
+        chunks.add(currentChunk);
+      }
+      
+      // 각 청크를 번역
+      List<String> translatedChunks = [];
+      for (final chunk in chunks) {
+        final translated = await _callMyMemoryAPI(chunk, targetLang);
+        if (translated != null) {
+          translatedChunks.add(translated);
+        } else {
+          // 번역 실패 시 null 반환
+          return null;
+        }
+        // API 레이트 리밋 방지를 위한 딜레이
+        if (chunks.length > 1) {
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+      }
+      
+      // 번역된 청크들 합치기
+      return translatedChunks.join(' ');
+    } catch (e) {
+      print('Translation error: $e');
+      return null;
+    }
+  }
+  
+  // MyMemory API 호출
+  Future<String?> _callMyMemoryAPI(String text, String targetLang) async {
+    try {
       final url = Uri.parse(
-        'https://api.mymemory.translated.net/get?q=${Uri.encodeComponent(textToTranslate)}&langpair=en|$targetLang'
+        'https://api.mymemory.translated.net/get?q=${Uri.encodeComponent(text)}&langpair=en|$targetLang'
       );
       
       final response = await http.get(url).timeout(
@@ -92,9 +123,9 @@ class TranslationService {
         
         // 번역 품질 체크
         if (translation != null && 
-            translation != textToTranslate && 
+            translation != text && 
             !translation.toString().toUpperCase().contains('MYMEMORY WARNING')) {
-          return isTruncated ? '$translation...' : translation;
+          return translation;
         }
       }
     } catch (e) {
