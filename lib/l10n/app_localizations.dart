@@ -246,6 +246,9 @@ class AppLocalizations {
       'reward_received': 'You received {amount} free quotes!',
       'rewarded_quotes_available': '{count} free quotes available',
       'unlimited_access_granted': 'Unlimited access granted until midnight!',
+      'unlimited_access_until_midnight': 'Unlimited access until midnight',
+      'watch_ad_unlock': 'Watch ad for unlimited\naccess until midnight',
+      'tap_to_watch_ad': 'Tap to watch ad',
 
       // Language
       'language': 'Language',
@@ -333,6 +336,9 @@ class AppLocalizations {
       'watch_ad_for_reward': '광고 시청하고 명언 10개 받기',
       'reward_received': '명언 {amount}개를 받았습니다!',
       'rewarded_quotes_available': '무료 명언 {count}개 사용 가능',
+      'unlimited_access_until_midnight': '자정까지 무제한 접근',
+      'watch_ad_unlock': '광고 시청 후 자정까지\n무제한 접근',
+      'tap_to_watch_ad': '탭하여 광고 시청',
 
       // Language
       'language': '언어',
@@ -405,6 +411,9 @@ class AppLocalizations {
       'watch_ad_for_reward': '広告を見て名言10個を獲得',
       'reward_received': '名言{amount}個を獲得しました！',
       'rewarded_quotes_available': '無料名言{count}個利用可能',
+      'unlimited_access_until_midnight': '深夜まで無制限アクセス',
+      'watch_ad_unlock': '広告視聴で深夜まで\n無制限アクセス',
+      'tap_to_watch_ad': 'タップして広告を見る',
 
       // Language
       'language': '言語',
@@ -477,6 +486,9 @@ class AppLocalizations {
       'watch_ad_for_reward': '观看广告获得10条免费名言',
       'reward_received': '您获得了{amount}条免费名言！',
       'rewarded_quotes_available': '还有{count}条免费名言可用',
+      'unlimited_access_until_midnight': '午夜前无限访问',
+      'watch_ad_unlock': '观看广告获得午夜前\n无限访问权限',
+      'tap_to_watch_ad': '点击观看广告',
 
       // Language
       'language': '语言',
@@ -542,6 +554,9 @@ class AppLocalizations {
       'watch_ad_for_reward': 'Ver anuncio para 10 citas gratis',
       'reward_received': '¡Recibiste {amount} citas gratis!',
       'rewarded_quotes_available': '{count} citas gratis disponibles',
+      'unlimited_access_until_midnight': 'Acceso ilimitado hasta medianoche',
+      'watch_ad_unlock': 'Ver anuncio para acceso\nilimitado hasta medianoche',
+      'tap_to_watch_ad': 'Toca para ver anuncio',
 
       // Language
       'language': 'Idioma',
@@ -632,6 +647,10 @@ class AppLocalizations {
       'watch_ad_for_reward': 'Regarder une pub pour 10 citations gratuites',
       'reward_received': 'Vous avez reçu {amount} citations gratuites!',
       'rewarded_quotes_available': '{count} citations gratuites disponibles',
+      'unlimited_access_until_midnight': 'Accès illimité jusqu\'à minuit',
+      'watch_ad_unlock':
+          'Regarder une pub pour accès\nillimité jusqu\'à minuit',
+      'tap_to_watch_ad': 'Appuyez pour voir la pub',
 
       // Language
       'language': 'Langue',
@@ -723,6 +742,10 @@ class AppLocalizations {
       'watch_ad_for_reward': 'Assista um anúncio para 10 citações grátis',
       'reward_received': 'Você recebeu {amount} citações grátis!',
       'rewarded_quotes_available': '{count} citações grátis disponíveis',
+      'unlimited_access_until_midnight': 'Acesso ilimitado até meia-noite',
+      'watch_ad_unlock':
+          'Assista um anúncio para acesso\nilimitado até meia-noite',
+      'tap_to_watch_ad': 'Toque para assistir anúncio',
 
       // Language
       'language': 'Idioma',

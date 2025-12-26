@@ -35,30 +35,30 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
     _restoreScrollPosition();
     _checkUnlimitedAccess();
   }
-  
+
   Future<void> _checkUnlimitedAccess() async {
     final hasAccess = await _quoteService.hasUnlimitedAccess();
     setState(() {
       _hasUnlimitedAccess = hasAccess;
     });
   }
-  
+
   Future<void> _handleQuoteTap(Quote quote) async {
     // 무제한 접근 권한이 있으면 바로 표시
     if (_hasUnlimitedAccess) {
       _showQuoteDetail(quote);
       return;
     }
-    
+
     // 락되지 않은 명언은 바로 표시
     if (!_quoteService.isQuoteLocked(quote)) {
       _showQuoteDetail(quote);
       return;
     }
-    
+
     // 락된 명언은 광고를 먼저 표시 (명언은 광고 시청 후에만 표시)
     final l10n = AppLocalizations.of(context);
-    
+
     if (kIsWeb) {
       // 웹에서는 광고 대신 안내 메시지 표시
       showDialog(
@@ -76,7 +76,7 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
       );
       return;
     }
-    
+
     // 보상형 광고를 먼저 표시 (명언은 광고 시청 완료 후에만 표시)
     try {
       await _adService.showRewardedAd(
@@ -85,7 +85,7 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
           // 자정까지 무제한 접근 권한 부여
           await _quoteService.grantUnlimitedAccessUntilMidnight();
           await _checkUnlimitedAccess();
-          
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -94,7 +94,7 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
                 duration: const Duration(seconds: 3),
               ),
             );
-            
+
             // 광고 시청 완료 후 명언 표시
             _showQuoteDetail(quote);
           }
@@ -113,7 +113,7 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
       }
     }
   }
-  
+
   void _showQuoteDetail(Quote quote) {
     // 명언 상세 보기 (간단한 다이얼로그)
     showDialog(
@@ -138,10 +138,10 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
 
   Future<void> _restoreScrollPosition() async {
     if (_hasRestoredScroll) return;
-    
+
     final prefs = await SharedPreferences.getInstance();
     final scrollOffset = prefs.getDouble('scroll_${widget.title}') ?? 0.0;
-    
+
     if (scrollOffset > 0 && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
@@ -156,7 +156,7 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
 
   Future<void> _saveScrollPosition() async {
     if (!_scrollController.hasClients) return;
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('scroll_${widget.title}', _scrollController.offset);
   }
@@ -206,7 +206,7 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '자정까지 무제한 접근',
+                      l10n.get('unlimited_access_until_midnight'),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -223,8 +223,9 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
               itemCount: widget.quotes.length,
               itemBuilder: (context, index) {
                 final quote = widget.quotes[index];
-                final isLocked = !_hasUnlimitedAccess && _quoteService.isQuoteLocked(quote);
-                
+                final isLocked =
+                    !_hasUnlimitedAccess && _quoteService.isQuoteLocked(quote);
+
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: GestureDetector(
@@ -245,7 +246,8 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
                               if (isLocked)
                                 Positioned.fill(
                                   child: BackdropFilter(
-                                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                                    filter: ImageFilter.blur(
+                                        sigmaX: 15, sigmaY: 15),
                                     child: Container(
                                       color: Colors.black.withOpacity(0.7),
                                     ),
@@ -273,7 +275,7 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      '광고 시청 후 자정까지\n무제한 접근',
+                                      l10n.get('watch_ad_unlock'),
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         color: Colors.white,
@@ -290,14 +292,17 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
                                     ),
                                     const SizedBox(height: 8),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
                                       decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                         borderRadius: BorderRadius.circular(20),
                                       ),
-                                      child: const Text(
-                                        '탭하여 광고 시청',
-                                        style: TextStyle(
+                                      child: Text(
+                                        l10n.get('tap_to_watch_ad'),
+                                        style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 12,
