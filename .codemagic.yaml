@@ -19,8 +19,8 @@ workflows:
       - name: Flutter build ipa
         script: |
           flutter build ipa --release \
-            --build-name=1.0.3 \
-            --build-number=$CM_BUILD_NUMBER
+            --build-name=1.0.5 \
+            --build-number=15
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
@@ -32,10 +32,4 @@ workflows:
           failure: true
       app_store_connect:
         auth: integration
-        # App Store Connect API Key 설정 필요
-        # CodeMagic 대시보드에서 App Store Connect API Key를 추가해야 합니다
-        # submit_to_testflight: true  # TestFlight 자동 제출 원하면 주석 해제
-        # beta_groups:  # TestFlight 베타 그룹
-        #   - group name 1
-        #   - group name 2
 
