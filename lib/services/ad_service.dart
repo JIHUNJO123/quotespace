@@ -16,6 +16,7 @@ class AdService {
   
   // 보상형 광고 콜백
   Function(int rewardAmount, String rewardType)? _onRewarded;
+  bool _adWasShown = false; // 광고가 실제로 표시되었는지 추적
 
   // 프리미엄 상태 확인
   bool get isPremium => _isPremium;
@@ -160,8 +161,11 @@ class AdService {
   Future<void> showRewardedAd({
     required Function(int rewardAmount, String rewardType) onRewarded,
   }) async {
+    _adWasShown = false;
+    
     if (!shouldShowAds) {
       // 프리미엄 사용자에게는 보상 제공
+      _adWasShown = true; // 프리미엄은 광고 없이 보상 제공
       onRewarded(10, 'quotes');
       return;
     }
@@ -169,8 +173,8 @@ class AdService {
     if (_rewardedAd == null) {
       await loadRewardedAd();
       if (_rewardedAd == null) {
-        // 광고 로드 실패 시에도 보상 제공 (사용자 경험)
-        onRewarded(5, 'quotes');
+        // 광고 로드 실패 시 보상 제공하지 않음
+        print('광고 로드 실패: 보상을 제공하지 않습니다');
         return;
       }
     }
@@ -178,24 +182,28 @@ class AdService {
     _onRewarded = onRewarded;
 
     _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (ad) {
+        // 광고가 실제로 표시됨
+        _adWasShown = true;
+        print('보상형 광고 표시됨');
+      },
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         loadRewardedAd(); // 다음 광고 미리 로드
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
+        print('광고 표시 실패: $error');
         ad.dispose();
         loadRewardedAd();
-        // 실패 시에도 작은 보상 제공
-        if (_onRewarded != null) {
-          _onRewarded!(3, 'quotes');
-        }
+        _adWasShown = false;
+        // 실패 시 보상 제공하지 않음
       },
     );
 
     await _rewardedAd!.show(
       onUserEarnedReward: (ad, reward) {
-        // 보상 지급
-        if (_onRewarded != null) {
+        // 광고 시청 완료 후에만 보상 지급
+        if (_onRewarded != null && _adWasShown) {
           _onRewarded!(reward.amount.toInt(), reward.type);
         }
       },

@@ -168,6 +168,7 @@ class AppLocalizations {
       'watch_ad_for_reward': 'Watch Ad for 10 Free Quotes',
       'reward_received': 'You received {amount} free quotes!',
       'rewarded_quotes_available': '{count} free quotes available',
+      'unlimited_access_granted': 'Unlimited access granted until midnight!',
       
       // Language
       'language': 'Language',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'dart:ui' as ui;
+import 'dart:ui' show ImageFilter;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
 import 'screens/category_screen.dart';
@@ -43,18 +44,56 @@ class DailyQuotesApp extends StatelessWidget {
       title: 'QuoteSpace',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6B4EFF),
+        colorScheme: ColorScheme(
           brightness: Brightness.light,
+          primary: const Color(0xFF00C9A7), // 틸 그린
+          onPrimary: Colors.white,
+          secondary: const Color(0xFFFF6B9D), // 핑크
+          onSecondary: Colors.white,
+          tertiary: const Color(0xFFFFC75F), // 골드
+          onTertiary: Colors.white,
+          error: const Color(0xFFE63946),
+          onError: Colors.white,
+          surface: Colors.white,
+          onSurface: const Color(0xFF2D3748),
+          surfaceContainerHighest: const Color(0xFFF7FAFC),
+          primaryContainer: const Color(0xFFE0F7F4),
+          secondaryContainer: const Color(0xFFFFE5EC),
         ),
         useMaterial3: true,
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide.none,
+          ),
+        ),
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6B4EFF),
+        colorScheme: ColorScheme(
           brightness: Brightness.dark,
+          primary: const Color(0xFF00D4AA), // 밝은 틸 그린
+          onPrimary: const Color(0xFF1A1A2E),
+          secondary: const Color(0xFFFF7BA3), // 밝은 핑크
+          onSecondary: const Color(0xFF1A1A2E),
+          tertiary: const Color(0xFFFFD93D), // 밝은 골드
+          onTertiary: const Color(0xFF1A1A2E),
+          error: const Color(0xFFFF6B6B),
+          onError: Colors.white,
+          surface: const Color(0xFF1A1A2E),
+          onSurface: const Color(0xFFE8E8E8),
+          surfaceContainerHighest: const Color(0xFF2D2D44),
+          primaryContainer: const Color(0xFF003D35),
+          secondaryContainer: const Color(0xFF4D1A2A),
         ),
         useMaterial3: true,
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide.none,
+          ),
+        ),
       ),
       themeMode: ThemeMode.system,
       
@@ -93,38 +132,97 @@ class _MainNavigatorState extends State<MainNavigator> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     
     return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
+      body: Stack(
+        children: [
+          _screens[_currentIndex],
+          // 플로팅 네비게이션 바
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withOpacity(0.95),
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.primary.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildNavItem(context, 0, Icons.home_outlined, Icons.home, l10n.get('home')),
+                        _buildNavItem(context, 1, Icons.category_outlined, Icons.category, l10n.get('categories')),
+                        _buildNavItem(context, 2, Icons.favorite_outline, Icons.favorite, l10n.get('favorites')),
+                        _buildNavItem(context, 3, Icons.settings_outlined, Icons.settings, l10n.get('settings')),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildNavItem(BuildContext context, int index, IconData icon, IconData selectedIcon, String label) {
+    final isSelected = _currentIndex == index;
+    final theme = Theme.of(context);
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
           setState(() {
             _currentIndex = index;
           });
         },
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home),
-            label: l10n.get('home'),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isSelected 
+                ? theme.colorScheme.primary.withOpacity(0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.category_outlined),
-            selectedIcon: const Icon(Icons.category),
-            label: l10n.get('categories'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isSelected ? selectedIcon : icon,
+                color: isSelected 
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurface.withOpacity(0.6),
+                size: 24,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected 
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.favorite_outline),
-            selectedIcon: const Icon(Icons.favorite),
-            label: l10n.get('favorites'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.settings_outlined),
-            selectedIcon: const Icon(Icons.settings),
-            label: l10n.get('settings'),
-          ),
-        ],
+        ),
       ),
     );
   }

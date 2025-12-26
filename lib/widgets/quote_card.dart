@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui' show ImageFilter;
 import 'package:google_fonts/google_fonts.dart';
 import '../models/quote.dart';
 import '../l10n/app_localizations.dart';
@@ -114,16 +115,50 @@ class _QuoteCardState extends State<QuoteCard> {
     final langCode = Localizations.localeOf(context).languageCode;
     final showTranslateButton = langCode != 'en';
 
-    return Card(
-      elevation: widget.compact ? 2 : 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      margin: EdgeInsets.all(widget.compact ? 8 : 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.surface.withOpacity(0.9),
+            Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.7),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(-10, -10),
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onLongPress: () => _copyToClipboard(context),
-        child: Container(
-          padding: EdgeInsets.all(widget.compact ? 14 : 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                width: 1.5,
+              ),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(28),
+              onLongPress: () => _copyToClipboard(context),
+              child: Container(
+                padding: EdgeInsets.all(widget.compact ? 18 : 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -248,26 +283,6 @@ class _QuoteCardState extends State<QuoteCard> {
 
               SizedBox(height: widget.compact ? 8 : 14),
 
-              // 카테고리 태그
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  l10n.getCategory(widget.quote.category).toUpperCase(),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontSize: 10,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-
-              SizedBox(height: widget.compact ? 8 : 14),
-
               // 액션 버튼들
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -308,6 +323,9 @@ class _QuoteCardState extends State<QuoteCard> {
                 ],
               ),
             ],
+          ),
+              ),
+            ),
           ),
         ),
       ),

@@ -160,55 +160,102 @@ class _HomeScreenState extends State<HomeScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
+            stops: const [0.0, 0.3, 0.7, 1.0],
             colors: [
               Theme.of(context).colorScheme.primaryContainer,
+              Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
               Theme.of(context).colorScheme.secondaryContainer,
+              Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5),
             ],
           ),
         ),
-        child: SafeArea(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  children: [
-                    // 헤더
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _showDailyQuote ? l10n.get('daily_quote') : l10n.get('random_quote'),
-                                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
+        child: Stack(
+          children: [
+            // 배경 장식 원들
+            Positioned(
+              top: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -150,
+              left: -150,
+              child: Container(
+                width: 400,
+                height: 400,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      children: [
+                        // 헤더 (비대칭 레이아웃)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        _showDailyQuote ? l10n.get('daily_quote') : l10n.get('random_quote'),
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
                                     Text(
                                       _formatDate(DateTime.now(), l10n),
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.7),
+                                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     if (_selectedCategory != null) ...[
-                                      const SizedBox(width: 8),
+                                      const SizedBox(height: 8),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(12),
+                                          color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(16),
                                         ),
                                         child: Text(
                                           l10n.getCategory(_selectedCategory!),
                                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                            color: Theme.of(context).colorScheme.primary,
+                                            color: Theme.of(context).colorScheme.secondary,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -216,9 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ],
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -328,6 +373,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
+            ),
+          ],
         ),
       ),
     );

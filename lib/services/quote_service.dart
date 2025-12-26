@@ -14,6 +14,9 @@ class QuoteService {
   final Random _random = Random();
   String? _selectedCategory; // 선택된 카테고리 필터
   int _rewardedQuotes = 0; // 보상으로 받은 추가 명언 수
+  
+  // 자정까지 무제한 접근 권한 (타임스탬프)
+  static const String _unlimitedAccessKey = 'unlimited_access_until';
 
   Future<void> loadQuotes() async {
     try {
@@ -156,5 +159,37 @@ class QuoteService {
 
   bool isFavorite(Quote quote) {
     return _favorites.any((q) => q.id == quote.id);
+  }
+  
+  // 자정까지 무제한 접근 권한 부여
+  Future<void> grantUnlimitedAccessUntilMidnight() async {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1, 0, 0, 0);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_unlimitedAccessKey, midnight.millisecondsSinceEpoch);
+  }
+  
+  // 무제한 접근 권한 확인
+  Future<bool> hasUnlimitedAccess() async {
+    final prefs = await SharedPreferences.getInstance();
+    final timestamp = prefs.getInt(_unlimitedAccessKey);
+    if (timestamp == null) return false;
+    
+    final accessUntil = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final now = DateTime.now();
+    
+    // 자정이 지났으면 권한 제거
+    if (now.isAfter(accessUntil)) {
+      await prefs.remove(_unlimitedAccessKey);
+      return false;
+    }
+    
+    return true;
+  }
+  
+  // 명언이 락되어 있는지 확인 (일부 명언만 락)
+  bool isQuoteLocked(Quote quote) {
+    // ID가 짝수인 명언만 락 (50% 락)
+    return quote.id % 2 == 0;
   }
 }
