@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AppLocalizations {
   final Locale locale;
   static Map<String, Map<String, String>> _dynamicTranslations = {};
-  static bool _isInitialized = false;
+  static Set<String> _initializedLanguages = {};
 
   AppLocalizations(this.locale);
 
@@ -20,65 +20,139 @@ class AppLocalizations {
 
   // 앱 시작 시 번역 로드
   static Future<void> initialize(String langCode) async {
-    if (_isInitialized && _dynamicTranslations.containsKey(langCode)) return;
-    
-    // 수동 번역이 있는 언어는 스킵
-    if (_localizedValues.containsKey(langCode)) {
-      _isInitialized = true;
-      return;
+    try {
+      // 이미 초기화된 언어는 스킵
+      if (_initializedLanguages.contains(langCode) &&
+          _dynamicTranslations.containsKey(langCode)) {
+        return;
+      }
+
+      // 수동 번역이 있는 언어는 스킵
+      if (_localizedValues.containsKey(langCode)) {
+        _initializedLanguages.add(langCode);
+        return;
+      }
+
+      // 동적 번역이 필요한 언어는 먼저 초기화 완료로 표시 (영어로 폴백)
+      // 이렇게 하면 앱이 즉시 시작되고, 번역은 백그라운드에서 로드됨
+      _initializedLanguages.add(langCode);
+      if (!_dynamicTranslations.containsKey(langCode)) {
+        _dynamicTranslations[langCode] = {};
+      }
+
+      // 캐시에서 로드 시도
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString('ui_translations_$langCode');
+
+      if (cached != null) {
+        try {
+          final decoded = Map<String, String>.from(json.decode(cached));
+          if (decoded.isNotEmpty) {
+            _dynamicTranslations[langCode] = decoded;
+            return;
+          }
+        } catch (e) {
+          // 캐시 파싱 실패 시 무시하고 API로 재시도
+        }
+      }
+
+      // API로 번역 (백그라운드에서, 실패해도 앱은 정상 작동)
+      _translateUIStrings(langCode).catchError((e) {
+        // API 실패는 무시 (이미 빈 맵으로 초기화됨)
+      });
+    } catch (e) {
+      // 모든 예외를 잡아서 앱이 크래시하지 않도록 함
+      _initializedLanguages.add(langCode);
+      if (!_dynamicTranslations.containsKey(langCode)) {
+        _dynamicTranslations[langCode] = {};
+      }
     }
-    
-    // 캐시에서 로드 시도
-    final prefs = await SharedPreferences.getInstance();
-    final cached = prefs.getString('ui_translations_$langCode');
-    
-    if (cached != null) {
-      _dynamicTranslations[langCode] = Map<String, String>.from(json.decode(cached));
-      _isInitialized = true;
-      return;
+  }
+
+  // 언어 변경 시 해당 언어 초기화 강제
+  static Future<void> reinitializeLanguage(String langCode) async {
+    try {
+      // 먼저 빈 맵으로 초기화하여 앱이 정상 작동하도록 보장
+      _initializedLanguages.add(langCode);
+      _dynamicTranslations[langCode] = {};
+
+      // 캐시에서 로드 시도
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString('ui_translations_$langCode');
+
+      if (cached != null) {
+        try {
+          final decoded = Map<String, String>.from(json.decode(cached));
+          if (decoded.isNotEmpty) {
+            _dynamicTranslations[langCode] = decoded;
+            return;
+          }
+        } catch (e) {
+          // 캐시 파싱 실패 시 무시하고 API로 재시도
+        }
+      }
+
+      // API로 번역 (백그라운드에서, 실패해도 앱은 정상 작동)
+      _translateUIStrings(langCode).catchError((e) {
+        // API 실패는 무시 (이미 빈 맵으로 초기화됨)
+      });
+    } catch (e) {
+      // 모든 예외를 잡아서 앱이 크래시하지 않도록 함
+      _initializedLanguages.add(langCode);
+      if (!_dynamicTranslations.containsKey(langCode)) {
+        _dynamicTranslations[langCode] = {};
+      }
     }
-    
-    // API로 번역
-    await _translateUIStrings(langCode);
-    _isInitialized = true;
   }
 
   // UI 문자열 자동 번역
   static Future<void> _translateUIStrings(String langCode) async {
-    final englishStrings = _localizedValues['en']!;
-    final translated = <String, String>{};
-    
-    // 배치로 번역 (API 호출 최소화)
-    for (final entry in englishStrings.entries) {
-      try {
-        final result = await _translateText(entry.value, langCode);
-        translated[entry.key] = result ?? entry.value;
-      } catch (e) {
-        translated[entry.key] = entry.value; // 실패 시 영어 유지
+    try {
+      final englishStrings = _localizedValues['en']!;
+      final translated = <String, String>{};
+
+      // 배치로 번역 (API 호출 최소화)
+      for (final entry in englishStrings.entries) {
+        try {
+          final result = await _translateText(entry.value, langCode);
+          translated[entry.key] = result ?? entry.value;
+        } catch (e) {
+          translated[entry.key] = entry.value; // 실패 시 영어 유지
+        }
       }
+
+      _dynamicTranslations[langCode] = translated;
+
+      // 캐시에 저장 (실패해도 계속 진행)
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+            'ui_translations_$langCode', json.encode(translated));
+      } catch (e) {
+        // 캐시 저장 실패는 무시
+      }
+    } catch (e) {
+      // 전체 번역 실패 시 빈 맵이라도 설정 (영어로 폴백)
+      _dynamicTranslations[langCode] = {};
     }
-    
-    _dynamicTranslations[langCode] = translated;
-    
-    // 캐시에 저장
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('ui_translations_$langCode', json.encode(translated));
   }
 
   static Future<String?> _translateText(String text, String targetLang) async {
     try {
       final url = Uri.parse(
-        'https://api.mymemory.translated.net/get?q=${Uri.encodeComponent(text)}&langpair=en|$targetLang'
-      );
-      
+          'https://api.mymemory.translated.net/get?q=${Uri.encodeComponent(text)}&langpair=en|$targetLang');
+
       final response = await http.get(url).timeout(const Duration(seconds: 5));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final translation = data['responseData']['translatedText'];
-        
-        if (translation != null && 
-            !translation.toString().toUpperCase().contains('MYMEMORY WARNING')) {
+
+        if (translation != null &&
+            !translation
+                .toString()
+                .toUpperCase()
+                .contains('MYMEMORY WARNING')) {
           return translation;
         }
       }
@@ -95,16 +169,17 @@ class AppLocalizations {
       'categories': 'Categories',
       'favorites': 'Favorites',
       'settings': 'Settings',
-      
+
       // Home Screen
       'daily_quote': "Today's Quote",
       'random_quote': 'Random Quote',
       'new_quote': 'New Quote',
       'view_daily_quote': 'View Daily Quote',
       'filter_category': 'Filter by Category',
-      'filter_category_desc': 'Select a category to see quotes only from that topic',
+      'filter_category_desc':
+          'Select a category to see quotes only from that topic',
       'all_categories': 'All Categories',
-      
+
       // Categories
       'happiness': 'Happiness',
       'inspiration': 'Inspiration',
@@ -117,16 +192,16 @@ class AppLocalizations {
       'science': 'Science',
       'time': 'Time',
       'quotes_count': 'quotes',
-      
+
       // Favorites
       'no_favorites': 'No favorite quotes yet',
       'add_favorites_hint': 'Tap the heart icon on quotes you love',
-      
+
       // Actions
       'share': 'Share',
       'copy': 'Copy',
       'copied_to_clipboard': 'Copied to clipboard',
-      
+
       // Settings
       'notifications': 'Notifications',
       'daily_notification': 'Daily Quote Notification',
@@ -143,7 +218,7 @@ class AppLocalizations {
       'version': 'Version',
       'quote_data': 'Quote Data',
       'quotes_available': 'quotes available',
-      
+
       // Translation
       'translation': 'Translation',
       'show_translation': 'Show Translation',
@@ -151,25 +226,27 @@ class AppLocalizations {
       'translating': 'Translating...',
       'auto_translate': 'Auto Translate',
       'auto_translate_desc': 'Automatically translate quotes to your language',
-      'notification_web_unavailable': 'Notifications are only available on mobile devices',
-      
+      'notification_web_unavailable':
+          'Notifications are only available on mobile devices',
+
       // IAP
       'premium': 'Premium',
       'remove_ads': 'Remove Ads',
       'remove_ads_desc': 'Enjoy ad-free experience',
       'restore_purchases': 'Restore Purchases',
-      'restore_purchases_desc': 'Restore previous purchases on this device or after reinstalling the app',
+      'restore_purchases_desc':
+          'Restore previous purchases on this device or after reinstalling the app',
       'purchase_success': 'Purchase successful! Ads removed.',
       'purchase_failed': 'Purchase failed. Please try again.',
       'already_premium': 'You already have premium!',
       'restoring': 'Restoring purchases...',
-      
+
       // Rewarded Ads
       'watch_ad_for_reward': 'Watch Ad for 10 Free Quotes',
       'reward_received': 'You received {amount} free quotes!',
       'rewarded_quotes_available': '{count} free quotes available',
       'unlimited_access_granted': 'Unlimited access granted until midnight!',
-      
+
       // Language
       'language': 'Language',
       'app_language': 'App Language',
@@ -183,7 +260,7 @@ class AppLocalizations {
       'categories': '카테고리',
       'favorites': '즐겨찾기',
       'settings': '설정',
-      
+
       // Home Screen
       'daily_quote': '오늘의 명언',
       'random_quote': '랜덤 명언',
@@ -192,7 +269,7 @@ class AppLocalizations {
       'filter_category': '카테고리 필터',
       'filter_category_desc': '원하는 주제의 명언만 볼 수 있습니다',
       'all_categories': '전체 카테고리',
-      
+
       // Categories
       'happiness': '행복',
       'inspiration': '영감',
@@ -205,16 +282,16 @@ class AppLocalizations {
       'science': '과학',
       'time': '시간',
       'quotes_count': '개의 명언',
-      
+
       // Favorites
       'no_favorites': '즐겨찾기한 명언이 없습니다',
       'add_favorites_hint': '마음에 드는 명언에 하트를 눌러보세요',
-      
+
       // Actions
       'share': '공유',
       'copy': '복사',
       'copied_to_clipboard': '클립보드에 복사되었습니다',
-      
+
       // Settings
       'notifications': '알림',
       'daily_notification': '매일 명언 알림',
@@ -231,7 +308,7 @@ class AppLocalizations {
       'version': '버전',
       'quote_data': '명언 데이터',
       'quotes_available': '개의 명언',
-      
+
       // Translation
       'translation': '번역',
       'show_translation': '번역 보기',
@@ -240,7 +317,7 @@ class AppLocalizations {
       'auto_translate': '자동 번역',
       'auto_translate_desc': '명언을 자동으로 번역하여 표시합니다',
       'notification_web_unavailable': '알림은 모바일 기기에서만 사용 가능합니다',
-      
+
       // IAP
       'premium': '프리미엄',
       'remove_ads': '광고 제거',
@@ -251,12 +328,12 @@ class AppLocalizations {
       'purchase_failed': '구매 실패. 다시 시도해주세요.',
       'already_premium': '이미 프리미엄 사용자입니다!',
       'restoring': '구매 복원 중...',
-      
+
       // Rewarded Ads
       'watch_ad_for_reward': '광고 시청하고 명언 10개 받기',
       'reward_received': '명언 {amount}개를 받았습니다!',
       'rewarded_quotes_available': '무료 명언 {count}개 사용 가능',
-      
+
       // Language
       'language': '언어',
       'app_language': '앱 언어',
@@ -323,12 +400,12 @@ class AppLocalizations {
       'purchase_failed': '購入に失敗しました。もう一度お試しください。',
       'already_premium': 'すでにプレミアムです！',
       'restoring': '購入を復元中...',
-      
+
       // Rewarded Ads
       'watch_ad_for_reward': '広告を見て名言10個を獲得',
       'reward_received': '名言{amount}個を獲得しました！',
       'rewarded_quotes_available': '無料名言{count}個利用可能',
-      
+
       // Language
       'language': '言語',
       'app_language': 'アプリ言語',
@@ -395,12 +472,12 @@ class AppLocalizations {
       'purchase_failed': '购买失败，请重试。',
       'already_premium': '您已经是高级用户！',
       'restoring': '正在恢复购买...',
-      
+
       // Rewarded Ads
       'watch_ad_for_reward': '观看广告获得10条免费名言',
       'reward_received': '您获得了{amount}条免费名言！',
       'rewarded_quotes_available': '还有{count}条免费名言可用',
-      
+
       // Language
       'language': '语言',
       'app_language': '应用语言',
@@ -450,7 +527,8 @@ class AppLocalizations {
       'translating': 'Traduciendo...',
       'auto_translate': 'Traducción automática',
       'auto_translate_desc': 'Traducir automáticamente las citas a su idioma',
-      'notification_web_unavailable': 'Las notificaciones solo están disponibles en dispositivos móviles',
+      'notification_web_unavailable':
+          'Las notificaciones solo están disponibles en dispositivos móviles',
       'premium': 'Premium',
       'remove_ads': 'Eliminar anuncios',
       'remove_ads_desc': 'Disfruta sin anuncios',
@@ -459,12 +537,12 @@ class AppLocalizations {
       'purchase_failed': 'Compra fallida. Inténtalo de nuevo.',
       'already_premium': '¡Ya tienes premium!',
       'restoring': 'Restaurando compras...',
-      
+
       // Rewarded Ads
       'watch_ad_for_reward': 'Ver anuncio para 10 citas gratis',
       'reward_received': '¡Recibiste {amount} citas gratis!',
       'rewarded_quotes_available': '{count} citas gratis disponibles',
-      
+
       // Language
       'language': 'Idioma',
       'app_language': 'Idioma de la app',
@@ -476,21 +554,24 @@ class AppLocalizations {
 
   String get(String key) {
     final langCode = locale.languageCode;
-    
+
     // 1. 수동 번역 확인
     if (_localizedValues.containsKey(langCode)) {
-      return _localizedValues[langCode]?[key] ?? 
-             _localizedValues['en']?[key] ?? 
-             key;
+      return _localizedValues[langCode]?[key] ??
+          _localizedValues['en']?[key] ??
+          key;
     }
-    
-    // 2. 동적 번역 확인
+
+    // 2. 동적 번역 확인 (값이 있어야 함)
     if (_dynamicTranslations.containsKey(langCode)) {
-      return _dynamicTranslations[langCode]?[key] ?? 
-             _localizedValues['en']?[key] ?? 
-             key;
+      final translations = _dynamicTranslations[langCode];
+      if (translations != null &&
+          translations.isNotEmpty &&
+          translations.containsKey(key)) {
+        return translations[key] ?? _localizedValues['en']?[key] ?? key;
+      }
     }
-    
+
     // 3. 기본값 (영어)
     return _localizedValues['en']?[key] ?? key;
   }
@@ -505,11 +586,12 @@ class AppLocalizations {
   }
 
   // 수동 번역된 언어
-  static List<String> get manuallyTranslatedLanguages => ['en', 'ko', 'ja', 'zh', 'es'];
-  
+  static List<String> get manuallyTranslatedLanguages =>
+      ['en', 'ko', 'ja', 'zh', 'es'];
+
   // 모든 지원 언어 코드
   static List<String> get _allLanguageCodes => _languageNames.keys.toList();
-  
+
   static List<String> get supportedLanguageCodes => _allLanguageCodes;
 
   // 주요 언어 6개 + 영어 (GPT-4o mini로 미리 번역된 언어)
@@ -524,18 +606,20 @@ class AppLocalizations {
   };
 
   String get languageName {
-    return _languageNames[locale.languageCode] ?? 
-           _languageNames['en'] ?? 
-           locale.languageCode.toUpperCase();
+    return _languageNames[locale.languageCode] ??
+        _languageNames['en'] ??
+        locale.languageCode.toUpperCase();
   }
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
   bool isSupported(Locale locale) {
-    return AppLocalizations.supportedLanguageCodes.contains(locale.languageCode);
+    return AppLocalizations.supportedLanguageCodes
+        .contains(locale.languageCode);
   }
 
   @override

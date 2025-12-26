@@ -8,7 +8,9 @@ import '../l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final Function(Locale)? onLocaleChanged;
+  
+  const SettingsScreen({super.key, this.onLocaleChanged});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -180,69 +182,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  String _getCurrentLanguageName(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return l10n.languageName;
-  }
-
-  Future<void> _showLanguageSelector(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    final currentLocale = Localizations.localeOf(context);
-    final supportedLanguages = AppLocalizations.supportedLanguageCodes;
-    
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.get('select_language')),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: supportedLanguages.length,
-            itemBuilder: (context, index) {
-              final langCode = supportedLanguages[index];
-              final testLocale = Locale(langCode);
-              final testL10n = AppLocalizations(testLocale);
-              final isSelected = currentLocale.languageCode == langCode;
-              
-              return ListTile(
-                title: Text(testL10n.languageName),
-                subtitle: Text(langCode.toUpperCase()),
-                leading: isSelected 
-                    ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
-                    : const Icon(Icons.circle_outlined),
-                onTap: () async {
-                  await _changeLanguage(context, langCode);
-                  Navigator.pop(context);
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _changeLanguage(BuildContext context, String langCode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selected_language', langCode);
-    
-    // 앱 재시작 필요 안내
-    if (mounted) {
-      final l10n = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.get('language_changed_restart')),
-          duration: const Duration(seconds: 3),
-          action: SnackBarAction(
-            label: l10n.get('restart_app'),
-            onPressed: () {
-              // 앱 재시작은 플랫폼별로 다르게 처리해야 함
-              // 여기서는 단순히 안내만 표시
-            },
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('selected_language', langCode);
+      
+      // 새 언어 초기화 (즉시 빈 맵으로 초기화하여 안전하게 처리)
+      // 완료를 기다리지 않고 백그라운드에서 진행
+      AppLocalizations.reinitializeLanguage(langCode).catchError((e) {
+        // 초기화 실패는 무시 (이미 빈 맵으로 초기화됨)
+      });
+      
+      // 실시간으로 locale 변경
+      if (widget.onLocaleChanged != null) {
+        widget.onLocaleChanged!(Locale(langCode));
+      }
+    } catch (e) {
+      // 언어 변경 실패 시에도 앱은 정상 작동
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Language change failed. Please try again.'),
+            duration: Duration(seconds: 2),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -406,9 +371,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ListTile(
                         leading: const Icon(Icons.language),
                         title: Text(l10n.get('app_language')),
-                        subtitle: Text(_getCurrentLanguageName(context)),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _showLanguageSelector(context),
+                        trailing: DropdownButton<String>(
+                          value: Localizations.localeOf(context).languageCode,
+                          underline: const SizedBox(),
+                          items: AppLocalizations.supportedLanguageCodes.map((langCode) {
+                            final testLocale = Locale(langCode);
+                            final testL10n = AppLocalizations(testLocale);
+                            return DropdownMenuItem<String>(
+                              value: langCode,
+                              child: Text(
+                                '${testL10n.languageName} (${langCode.toUpperCase()})',
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (String? newLangCode) {
+                            if (newLangCode != null) {
+                              _changeLanguage(context, newLangCode);
+                            }
+                          },
+                        ),
                       ),
                       
                       const Divider(height: 32),

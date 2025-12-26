@@ -3,3 +3,4 @@ keyPassword=your_key_password
 keyAlias=quotespace
 storeFile=app/quotespace-keystore.jks
 
+

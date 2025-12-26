@@ -27,16 +27,38 @@ void main() async {
   final systemLocale = ui.PlatformDispatcher.instance.locale;
   final targetLanguage = savedLanguage ?? systemLocale.languageCode;
   
-  // UI 번역 초기화
-  await AppLocalizations.initialize(targetLanguage);
+  // UI 번역 초기화 (비동기로 처리, 앱 시작을 막지 않음)
+  // 동적 번역 언어는 먼저 빈 맵으로 초기화되어 즉시 영어로 폴백 가능
+  AppLocalizations.initialize(targetLanguage).catchError((e) {
+    // 초기화 실패는 무시 (이미 빈 맵으로 초기화됨)
+  });
   
-  runApp(DailyQuotesApp(locale: savedLanguage != null ? Locale(savedLanguage) : null));
+  runApp(DailyQuotesApp(initialLocale: savedLanguage != null ? Locale(savedLanguage) : null));
 }
 
-class DailyQuotesApp extends StatelessWidget {
-  final Locale? locale;
+class DailyQuotesApp extends StatefulWidget {
+  final Locale? initialLocale;
   
-  const DailyQuotesApp({super.key, this.locale});
+  const DailyQuotesApp({super.key, this.initialLocale});
+
+  @override
+  State<DailyQuotesApp> createState() => _DailyQuotesAppState();
+}
+
+class _DailyQuotesAppState extends State<DailyQuotesApp> {
+  Locale? _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    _locale = widget.initialLocale;
+  }
+
+  void changeLocale(Locale newLocale) {
+    setState(() {
+      _locale = newLocale;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,15 +127,19 @@ class DailyQuotesApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      locale: locale,
+      locale: _locale,
       
-      home: const MainNavigator(),
+      home: MainNavigator(
+        onLocaleChanged: changeLocale,
+      ),
     );
   }
 }
 
 class MainNavigator extends StatefulWidget {
-  const MainNavigator({super.key});
+  final Function(Locale)? onLocaleChanged;
+  
+  const MainNavigator({super.key, this.onLocaleChanged});
 
   @override
   State<MainNavigator> createState() => _MainNavigatorState();
@@ -122,11 +148,13 @@ class MainNavigator extends StatefulWidget {
 class _MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
+  List<Widget> get _screens => [
     const HomeScreen(),
     const CategoryScreen(),
     const FavoritesScreen(),
-    const SettingsScreen(),
+    SettingsScreen(
+      onLocaleChanged: widget.onLocaleChanged,
+    ),
   ];
 
   @override

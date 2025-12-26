@@ -55,3 +55,4 @@ flutter build appbundle --release
    - CodeMagic에서는 환경 변수로 키스토어를 설정할 수 있습니다
    - 로컬 빌드와 CodeMagic 빌드는 서로 다른 키스토어를 사용할 수 있습니다
 
+
