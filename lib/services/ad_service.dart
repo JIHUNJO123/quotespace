@@ -37,15 +37,12 @@ class AdService {
     await prefs.setBool('is_premium', value);
   }
 
-  // 광고 ID (디버그 모드에서는 테스트 ID 사용)
+  // 실제 광고 ID
   static String get bannerAdUnitId {
     if (kIsWeb) return ''; // 웹은 지원 안함
     if (Platform.isAndroid) {
-      // 디버그 모드에서는 테스트 광고 ID 사용
-      if (kDebugMode) return 'ca-app-pub-3940256099942544/6300978111';
       return 'ca-app-pub-5837885590326347/9922573116'; // Android 배너
     } else if (Platform.isIOS) {
-      if (kDebugMode) return 'ca-app-pub-3940256099942544/2934735716';
       return 'ca-app-pub-5837885590326347/7915179264'; // iOS 배너
     }
     return '';
@@ -54,10 +51,8 @@ class AdService {
   static String get interstitialAdUnitId {
     if (kIsWeb) return '';
     if (Platform.isAndroid) {
-      if (kDebugMode) return 'ca-app-pub-3940256099942544/1033173712';
       return 'ca-app-pub-5837885590326347/5847596734'; // Android 전면
     } else if (Platform.isIOS) {
-      if (kDebugMode) return 'ca-app-pub-3940256099942544/4411468910';
       return 'ca-app-pub-5837885590326347/3664286522'; // iOS 전면
     }
     return '';
@@ -66,10 +61,8 @@ class AdService {
   static String get rewardedAdUnitId {
     if (kIsWeb) return '';
     if (Platform.isAndroid) {
-      if (kDebugMode) return 'ca-app-pub-3940256099942544/5224354917';
       return 'ca-app-pub-5837885590326347/6752195239'; // Android 보상형 전면
     } else if (Platform.isIOS) {
-      if (kDebugMode) return 'ca-app-pub-3940256099942544/1712485313';
       return 'ca-app-pub-5837885590326347/8065276902'; // iOS 보상형 전면
     }
     return '';
