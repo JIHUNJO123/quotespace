@@ -175,6 +175,8 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
