@@ -19,8 +19,8 @@ workflows:
       - name: Flutter build ipa
         script: |
           flutter build ipa --release \
-            --build-name=1.0.5 \
-            --build-number=15
+            --build-name=1.0.6 \
+            --build-number=16
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
