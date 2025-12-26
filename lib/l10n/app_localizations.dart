@@ -550,6 +550,187 @@ class AppLocalizations {
       'language_changed_restart': 'Idioma cambiado. Por favor reinicia la app.',
       'restart_app': 'Reiniciar',
     },
+    'fr': {
+      // Navigation
+      'home': 'Accueil',
+      'categories': 'Catégories',
+      'favorites': 'Favoris',
+      'settings': 'Paramètres',
+
+      // Home Screen
+      'daily_quote': 'Citation du jour',
+      'random_quote': 'Citation aléatoire',
+      'new_quote': 'Nouvelle citation',
+      'view_daily_quote': 'Voir la citation du jour',
+      'filter_category': 'Filtrer par catégorie',
+      'filter_category_desc':
+          'Sélectionnez une catégorie pour voir uniquement ces citations',
+      'all_categories': 'Toutes les catégories',
+
+      // Categories
+      'happiness': 'Bonheur',
+      'inspiration': 'Inspiration',
+      'love': 'Amour',
+      'success': 'Succès',
+      'truth': 'Vérité',
+      'poetry': 'Poésie',
+      'death': 'Vie et mort',
+      'romance': 'Romance',
+      'science': 'Science',
+      'time': 'Temps',
+      'quotes_count': 'citations',
+
+      // Favorites
+      'no_favorites': 'Pas encore de citations favorites',
+      'add_favorites_hint': 'Appuyez sur le cœur des citations que vous aimez',
+
+      // Actions
+      'share': 'Partager',
+      'copy': 'Copier',
+      'copied_to_clipboard': 'Copié dans le presse-papiers',
+
+      // Settings
+      'notifications': 'Notifications',
+      'daily_notification': 'Notification quotidienne',
+      'notification_time': 'Heure de notification',
+      'notification_language': 'Langue de notification',
+      'notification_english_desc': 'Recevoir les citations en anglais',
+      'notification_local_desc': 'Recevoir le titre en français',
+      'local_language': 'Français',
+      'notification_on': 'Notification activée',
+      'notification_off': 'Notification désactivée',
+      'notification_time_changed': 'Heure modifiée à:',
+      'notification_permission_required': 'Permission de notification requise',
+      'app_info': 'Info de l\'app',
+      'version': 'Version',
+      'quote_data': 'Données des citations',
+      'quotes_available': 'citations disponibles',
+
+      // Translation
+      'translation': 'Traduction',
+      'show_translation': 'Afficher la traduction',
+      'hide_translation': 'Masquer la traduction',
+      'translating': 'Traduction en cours...',
+      'auto_translate': 'Traduction automatique',
+      'auto_translate_desc': 'Traduire automatiquement les citations',
+      'notification_web_unavailable':
+          'Les notifications ne sont disponibles que sur mobile',
+
+      // IAP
+      'premium': 'Premium',
+      'remove_ads': 'Supprimer les publicités',
+      'remove_ads_desc': 'Profitez sans publicités',
+      'restore_purchases': 'Restaurer les achats',
+      'restore_purchases_desc':
+          'Restaurer les achats précédents sur cet appareil',
+      'purchase_success': 'Achat réussi! Publicités supprimées.',
+      'purchase_failed': 'Achat échoué. Veuillez réessayer.',
+      'already_premium': 'Vous êtes déjà premium!',
+      'restoring': 'Restauration en cours...',
+
+      // Rewarded Ads
+      'watch_ad_for_reward': 'Regarder une pub pour 10 citations gratuites',
+      'reward_received': 'Vous avez reçu {amount} citations gratuites!',
+      'rewarded_quotes_available': '{count} citations gratuites disponibles',
+
+      // Language
+      'language': 'Langue',
+      'app_language': 'Langue de l\'app',
+      'select_language': 'Sélectionner la langue',
+      'language_changed_restart':
+          'Langue modifiée. Veuillez redémarrer l\'app.',
+      'restart_app': 'Redémarrer',
+    },
+    'pt': {
+      // Navigation
+      'home': 'Início',
+      'categories': 'Categorias',
+      'favorites': 'Favoritos',
+      'settings': 'Configurações',
+
+      // Home Screen
+      'daily_quote': 'Citação do dia',
+      'random_quote': 'Citação aleatória',
+      'new_quote': 'Nova citação',
+      'view_daily_quote': 'Ver citação do dia',
+      'filter_category': 'Filtrar por categoria',
+      'filter_category_desc':
+          'Selecione uma categoria para ver apenas essas citações',
+      'all_categories': 'Todas as categorias',
+
+      // Categories
+      'happiness': 'Felicidade',
+      'inspiration': 'Inspiração',
+      'love': 'Amor',
+      'success': 'Sucesso',
+      'truth': 'Verdade',
+      'poetry': 'Poesia',
+      'death': 'Vida e morte',
+      'romance': 'Romance',
+      'science': 'Ciência',
+      'time': 'Tempo',
+      'quotes_count': 'citações',
+
+      // Favorites
+      'no_favorites': 'Ainda não há citações favoritas',
+      'add_favorites_hint': 'Toque no coração das citações que você gosta',
+
+      // Actions
+      'share': 'Compartilhar',
+      'copy': 'Copiar',
+      'copied_to_clipboard': 'Copiado para a área de transferência',
+
+      // Settings
+      'notifications': 'Notificações',
+      'daily_notification': 'Notificação diária',
+      'notification_time': 'Hora da notificação',
+      'notification_language': 'Idioma da notificação',
+      'notification_english_desc': 'Receber citações em inglês',
+      'notification_local_desc': 'Receber título em português',
+      'local_language': 'Português',
+      'notification_on': 'Notificação ativada',
+      'notification_off': 'Notificação desativada',
+      'notification_time_changed': 'Hora alterada para:',
+      'notification_permission_required': 'Permissão de notificação necessária',
+      'app_info': 'Info do app',
+      'version': 'Versão',
+      'quote_data': 'Dados das citações',
+      'quotes_available': 'citações disponíveis',
+
+      // Translation
+      'translation': 'Tradução',
+      'show_translation': 'Mostrar tradução',
+      'hide_translation': 'Ocultar tradução',
+      'translating': 'Traduzindo...',
+      'auto_translate': 'Tradução automática',
+      'auto_translate_desc': 'Traduzir citações automaticamente',
+      'notification_web_unavailable':
+          'Notificações disponíveis apenas em dispositivos móveis',
+
+      // IAP
+      'premium': 'Premium',
+      'remove_ads': 'Remover anúncios',
+      'remove_ads_desc': 'Aproveite sem anúncios',
+      'restore_purchases': 'Restaurar compras',
+      'restore_purchases_desc':
+          'Restaurar compras anteriores neste dispositivo',
+      'purchase_success': 'Compra realizada! Anúncios removidos.',
+      'purchase_failed': 'Compra falhou. Tente novamente.',
+      'already_premium': 'Você já é premium!',
+      'restoring': 'Restaurando compras...',
+
+      // Rewarded Ads
+      'watch_ad_for_reward': 'Assista um anúncio para 10 citações grátis',
+      'reward_received': 'Você recebeu {amount} citações grátis!',
+      'rewarded_quotes_available': '{count} citações grátis disponíveis',
+
+      // Language
+      'language': 'Idioma',
+      'app_language': 'Idioma do app',
+      'select_language': 'Selecionar idioma',
+      'language_changed_restart': 'Idioma alterado. Reinicie o app.',
+      'restart_app': 'Reiniciar',
+    },
   };
 
   String get(String key) {
@@ -587,7 +768,7 @@ class AppLocalizations {
 
   // 수동 번역된 언어
   static List<String> get manuallyTranslatedLanguages =>
-      ['en', 'ko', 'ja', 'zh', 'es'];
+      ['en', 'ko', 'ja', 'zh', 'es', 'fr', 'pt'];
 
   // 모든 지원 언어 코드
   static List<String> get _allLanguageCodes => _languageNames.keys.toList();
