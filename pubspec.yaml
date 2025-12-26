@@ -3,7 +3,7 @@ description: QuoteSpace - Get inspired with quotes in your language every day.
 
 publish_to: 'none'
 
-version: 1.0.2+12
+version: 1.0.3+13
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -34,7 +34,10 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/app_icon.png"
   min_sdk_android: 21
-  remove_alpha_ios: true
+  remove_alpha_ios: false  # iOS에서 알파 채널 유지로 더 선명한 아이콘
+  # Android adaptive icon 설정
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
 
 flutter:
   uses-material-design: true
