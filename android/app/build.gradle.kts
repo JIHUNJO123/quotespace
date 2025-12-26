@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -17,7 +20,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -34,23 +37,61 @@ android {
 
     signingConfigs {
         create("release") {
+            // CodeMagic 환경 변수 우선 확인
             val keystorePath = System.getenv("CM_KEYSTORE_PATH")
             if (keystorePath != null) {
                 storeFile = file(keystorePath)
                 storePassword = System.getenv("CM_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("CM_KEY_ALIAS")
                 keyPassword = System.getenv("CM_KEY_PASSWORD")
+            } else {
+                // 로컬 key.properties 파일 사용
+                val keystorePropertiesFile = rootProject.file("key.properties")
+                if (keystorePropertiesFile.exists()) {
+                    val keystoreProperties = Properties()
+                    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+                    val storeFileProp = keystoreProperties.getProperty("storeFile")
+                    val storePasswordProp = keystoreProperties.getProperty("storePassword")
+                    val keyAliasProp = keystoreProperties.getProperty("keyAlias")
+                    val keyPasswordProp = keystoreProperties.getProperty("keyPassword")
+                    
+                    if (storeFileProp != null && storePasswordProp != null && keyAliasProp != null && keyPasswordProp != null) {
+                        // storeFile 경로는 android/app/ 기준
+                        val keystoreFile = file(storeFileProp)
+                        if (keystoreFile.exists()) {
+                            storeFile = keystoreFile
+                            storePassword = storePasswordProp
+                            keyAlias = keyAliasProp
+                            keyPassword = keyPasswordProp
+                            println("Keystore loaded: ${keystoreFile.absolutePath}")
+                        } else {
+                            println("ERROR: Keystore file not found: ${keystoreFile.absolutePath}")
+                        }
+                    } else {
+                        println("ERROR: Missing keystore properties")
+                    }
+                } else {
+                    println("WARNING: key.properties file not found")
+                }
             }
         }
     }
 
     buildTypes {
         release {
+            // CodeMagic 환경 변수 우선 확인
             val keystorePath = System.getenv("CM_KEYSTORE_PATH")
             if (keystorePath != null) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
-                signingConfig = signingConfigs.getByName("debug")
+                // 로컬 key.properties 파일 확인
+                val keystorePropertiesFile = rootProject.file("key.properties")
+                if (keystorePropertiesFile.exists()) {
+                    signingConfig = signingConfigs.getByName("release")
+                } else {
+                    // 키스토어가 없으면 디버그 서명 사용 (경고)
+                    signingConfig = signingConfigs.getByName("debug")
+                }
             }
         }
     }
