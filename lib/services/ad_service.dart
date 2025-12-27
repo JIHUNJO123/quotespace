@@ -10,7 +10,7 @@ class AdService {
 
   BannerAd? _bannerAd;
   InterstitialAd? _interstitialAd;
-  RewardedAd? _rewardedAd;
+  RewardedInterstitialAd? _rewardedAd;
   bool _isInitialized = false;
   bool _isPremium = false;
   
@@ -61,9 +61,9 @@ class AdService {
   static String get rewardedAdUnitId {
     if (kIsWeb) return '';
     if (Platform.isAndroid) {
-      return 'ca-app-pub-5837885590326347/6752195239'; // Android 보상형 전면
+      return 'ca-app-pub-5837885590326347/5844122459'; // Android 보상형 전면
     } else if (Platform.isIOS) {
-      return 'ca-app-pub-5837885590326347/8065276902'; // iOS 보상형 전면
+      return 'ca-app-pub-5837885590326347/5443214505'; // iOS 보상형 전면
     }
     return '';
   }
@@ -75,18 +75,23 @@ class AdService {
   Future<void> initialize() async {
     if (!isSupported || _isInitialized) return;
 
-    await _loadPremiumStatus();
-    
-    if (_isPremium) {
-      _isInitialized = true;
-      return; // 프리미엄 사용자는 광고 로드 안함
-    }
+    try {
+      await _loadPremiumStatus();
+      
+      if (_isPremium) {
+        _isInitialized = true;
+        return; // 프리미엄 사용자는 광고 로드 안함
+      }
 
-    await MobileAds.instance.initialize();
-    _isInitialized = true;
-    
-    // 보상형 광고 미리 로드
-    await loadRewardedAd();
+      await MobileAds.instance.initialize();
+      _isInitialized = true;
+      
+      // 보상형 광고 미리 로드
+      await loadRewardedAd();
+    } catch (e) {
+      debugPrint('AdService initialize error: $e');
+      _isInitialized = true; // 실패해도 초기화 완료로 처리
+    }
   }
 
   // 배너 광고 로드
@@ -137,20 +142,20 @@ class AdService {
 
   // 더 이상 사용하지 않음 (보상형 광고로 대체)
 
-  // 보상형 광고 로드
+  // 보상형 전면광고 로드
   Future<void> loadRewardedAd() async {
     if (!shouldShowAds) return;
 
-    await RewardedAd.load(
+    await RewardedInterstitialAd.load(
       adUnitId: rewardedAdUnitId,
       request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
+      rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _rewardedAd = ad;
-          print('보상형 광고 로드됨');
+          print('보상형 전면광고 로드됨');
         },
         onAdFailedToLoad: (error) {
-          print('보상형 광고 로드 실패: $error');
+          print('보상형 전면광고 로드 실패: $error');
           _rewardedAd = null;
         },
       ),
@@ -185,7 +190,7 @@ class AdService {
       onAdShowedFullScreenContent: (ad) {
         // 광고가 실제로 표시됨
         _adWasShown = true;
-        print('보상형 광고 표시됨');
+        print('보상형 전면광고 표시됨');
       },
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();

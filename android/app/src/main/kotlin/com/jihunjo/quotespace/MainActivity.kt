@@ -1,4 +1,4 @@
-package com.jihunjo.quoteenglishdaily
+package com.jihunjo.quotespace
 
 import io.flutter.embedding.android.FlutterActivity
 

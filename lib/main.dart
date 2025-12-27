@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'dart:ui' as ui;
 import 'dart:ui' show ImageFilter;
+import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
 import 'screens/category_screen.dart';
@@ -13,27 +14,48 @@ import 'services/ad_service.dart';
 import 'services/iap_service.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // 웹이 아닌 경우에만 광고 및 IAP 초기화
-  if (!kIsWeb) {
-    await AdService().initialize();
-    await IAPService().initialize();
-  }
-  
-  // 저장된 언어 설정 로드 또는 시스템 언어 사용
-  final prefs = await SharedPreferences.getInstance();
-  final savedLanguage = prefs.getString('selected_language');
-  final systemLocale = ui.PlatformDispatcher.instance.locale;
-  final targetLanguage = savedLanguage ?? systemLocale.languageCode;
-  
-  // UI 번역 초기화 (비동기로 처리, 앱 시작을 막지 않음)
-  // 동적 번역 언어는 먼저 빈 맵으로 초기화되어 즉시 영어로 폴백 가능
-  AppLocalizations.initialize(targetLanguage).catchError((e) {
-    // 초기화 실패는 무시 (이미 빈 맵으로 초기화됨)
+  // 전역 에러 핸들링
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('Flutter Error: ${details.exception}');
+  };
+
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // 웹이 아닌 경우에만 광고 및 IAP 초기화
+    if (!kIsWeb) {
+      try {
+        await AdService().initialize();
+      } catch (e) {
+        debugPrint('AdService 초기화 실패: $e');
+      }
+      
+      try {
+        await IAPService().initialize();
+      } catch (e) {
+        debugPrint('IAPService 초기화 실패: $e');
+      }
+    }
+    
+    // 저장된 언어 설정 로드 또는 시스템 언어 사용
+    final prefs = await SharedPreferences.getInstance();
+    final savedLanguage = prefs.getString('selected_language');
+    final systemLocale = ui.PlatformDispatcher.instance.locale;
+    final targetLanguage = savedLanguage ?? systemLocale.languageCode;
+    
+    // UI 번역 초기화 (비동기로 처리, 앱 시작을 막지 않음)
+    // 동적 번역 언어는 먼저 빈 맵으로 초기화되어 즉시 영어로 폴백 가능
+    AppLocalizations.initialize(targetLanguage).catchError((e) {
+      // 초기화 실패는 무시 (이미 빈 맵으로 초기화됨)
+      debugPrint('AppLocalizations 초기화 실패: $e');
+    });
+    
+    runApp(DailyQuotesApp(initialLocale: savedLanguage != null ? Locale(savedLanguage) : null));
+  }, (error, stackTrace) {
+    debugPrint('Uncaught error: $error');
+    debugPrint('Stack trace: $stackTrace');
   });
-  
-  runApp(DailyQuotesApp(initialLocale: savedLanguage != null ? Locale(savedLanguage) : null));
 }
 
 class DailyQuotesApp extends StatefulWidget {

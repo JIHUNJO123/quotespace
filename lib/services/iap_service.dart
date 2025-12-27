@@ -30,28 +30,33 @@ class IAPService {
   Future<void> initialize() async {
     if (kIsWeb) return;
     
-    // 저장된 프리미엄 상태 로드
-    await _loadPremiumStatus();
-    
-    // IAP 사용 가능 여부 확인
-    _isAvailable = await _inAppPurchase.isAvailable();
-    if (!_isAvailable) {
-      print('IAP를 사용할 수 없습니다');
-      return;
+    try {
+      // 저장된 프리미엄 상태 로드
+      await _loadPremiumStatus();
+      
+      // IAP 사용 가능 여부 확인
+      _isAvailable = await _inAppPurchase.isAvailable();
+      if (!_isAvailable) {
+        print('IAP를 사용할 수 없습니다');
+        return;
+      }
+      
+      // 구매 스트림 리스닝
+      _subscription = _inAppPurchase.purchaseStream.listen(
+        _onPurchaseUpdate,
+        onDone: () => _subscription?.cancel(),
+        onError: (error) => print('구매 오류: $error'),
+      );
+      
+      // 상품 정보 로드
+      await _loadProducts();
+      
+      // 이전 구매 복원
+      await restorePurchases();
+    } catch (e) {
+      print('IAPService 초기화 에러: $e');
+      // 에러가 발생해도 앱이 크래시하지 않도록 함
     }
-    
-    // 구매 스트림 리스닝
-    _subscription = _inAppPurchase.purchaseStream.listen(
-      _onPurchaseUpdate,
-      onDone: () => _subscription?.cancel(),
-      onError: (error) => print('구매 오류: $error'),
-    );
-    
-    // 상품 정보 로드
-    await _loadProducts();
-    
-    // 이전 구매 복원
-    await restorePurchases();
   }
 
   Future<void> _loadProducts() async {
