@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -5,6 +6,7 @@ import 'dart:ui' as ui;
 import 'dart:ui' show ImageFilter;
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/home_screen.dart';
 import 'screens/category_screen.dart';
 import 'screens/favorites_screen.dart';
@@ -25,6 +27,16 @@ void main() async {
     
     // 웹이 아닌 경우에만 광고 및 IAP 초기화
     if (!kIsWeb) {
+      // AdMob SDK 초기화
+      if (Platform.isAndroid || Platform.isIOS) {
+        try {
+          await MobileAds.instance.initialize();
+          debugPrint('AdMob SDK initialized successfully');
+        } catch (e) {
+          debugPrint('AdMob init error: $e');
+        }
+      }
+
       try {
         await AdService().initialize();
       } catch (e) {

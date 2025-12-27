@@ -13,14 +13,14 @@ class AdService {
   RewardedInterstitialAd? _rewardedAd;
   bool _isInitialized = false;
   bool _isPremium = false;
-  
+
   // 보상형 광고 콜백
   Function(int rewardAmount, String rewardType)? _onRewarded;
   bool _adWasShown = false; // 광고가 실제로 표시되었는지 추적
 
   // 프리미엄 상태 확인
   bool get isPremium => _isPremium;
-  
+
   // 프리미엄 상태 설정 (IAP에서 호출)
   set isPremium(bool value) {
     _isPremium = value;
@@ -69,7 +69,8 @@ class AdService {
   }
 
   // 플랫폼이 광고를 지원하는지 확인 (프리미엄이면 광고 안 보임)
-  static bool get isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  static bool get isSupported =>
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
   bool get shouldShowAds => isSupported && !_isPremium;
 
   Future<void> initialize() async {
@@ -77,7 +78,7 @@ class AdService {
 
     try {
       await _loadPremiumStatus();
-      
+
       if (_isPremium) {
         _isInitialized = true;
         return; // 프리미엄 사용자는 광고 로드 안함
@@ -85,7 +86,7 @@ class AdService {
 
       await MobileAds.instance.initialize();
       _isInitialized = true;
-      
+
       // 보상형 광고 미리 로드
       await loadRewardedAd();
     } catch (e) {
@@ -167,14 +168,14 @@ class AdService {
     required Function(int rewardAmount, String rewardType) onRewarded,
   }) async {
     _adWasShown = false;
-    
+
     if (!shouldShowAds) {
       // 프리미엄 사용자에게는 보상 제공
       _adWasShown = true; // 프리미엄은 광고 없이 보상 제공
       onRewarded(10, 'quotes');
       return;
     }
-    
+
     if (_rewardedAd == null) {
       await loadRewardedAd();
       if (_rewardedAd == null) {
