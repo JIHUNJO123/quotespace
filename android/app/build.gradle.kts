@@ -37,10 +37,10 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = "quotespace"
-            keyPassword = "quotespace123!"
-            storeFile = file("quotespace-keystore.jks")
-            storePassword = "quotespace123!"
+            keyAlias = "upload"
+            keyPassword = "quoteapp123"
+            storeFile = file("quoteenglishdaily-keystore.jks")
+            storePassword = "quoteapp123"
         }
     }
 
